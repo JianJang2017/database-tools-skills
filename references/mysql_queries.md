@@ -1,6 +1,6 @@
 # MySQL 系统表查询参考
 
-本文档包含 database-tools 技能中使用的关键 MySQL 系统视图和查询模式。
+本文档包含 database-tools-skills 技能中使用的关键 MySQL 系统视图和查询模式。
 
 ## 核心系统视图
 

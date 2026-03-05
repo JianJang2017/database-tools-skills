@@ -1,6 +1,6 @@
 # PostgreSQL 系统视图查询参考
 
-本文档包含 database-tools 技能中使用的关键 PostgreSQL 系统视图和查询模式。
+本文档包含 database-tools-skills 技能中使用的关键 PostgreSQL 系统视图和查询模式。
 
 ## 核心系统视图
 

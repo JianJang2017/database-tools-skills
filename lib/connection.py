@@ -4,21 +4,47 @@
 """
 
 import os
+from urllib.parse import urlparse, unquote
 from . import config
 
 
+def _safe_int(value, default):
+    """安全的 int 转换，失败时返回默认值"""
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def _load_env_file(env_file=None):
-    """从 .env 文件加载环境变量"""
+    """从 .env 文件加载环境变量（跳过空值，避免覆盖有效默认值）"""
     path = env_file or ".env"
     if os.path.exists(path):
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
-                line = line.strip()
+                line = line.strip().strip("\r")
                 if line and not line.startswith("#") and "=" in line:
                     key, val = line.split("=", 1)
-                    os.environ.setdefault(
-                        key.strip(), val.strip().strip('"').strip("'")
-                    )
+                    val = val.strip().strip("\r").strip('"').strip("'")
+                    if val:  # 跳过空值，防止 int("") 等下游错误
+                        os.environ.setdefault(key.strip(), val)
+
+
+def _parse_mysql_dsn(dsn, charset="utf8mb4"):
+    """安全解析 MySQL DSN，正确处理密码中的特殊字符"""
+    import pymysql
+    parsed = urlparse(dsn)
+    return pymysql.connect(
+        host=parsed.hostname or "localhost",
+        port=parsed.port or 3306,
+        user=unquote(parsed.username) if parsed.username else "root",
+        password=unquote(parsed.password) if parsed.password else "",
+        database=parsed.path.lstrip("/") if parsed.path else None,
+        charset=charset,
+        cursorclass=pymysql.cursors.DictCursor,
+    )
 
 
 def connect_pg(host=None, port=None, user=None, password=None,
@@ -40,7 +66,7 @@ def connect_pg(host=None, port=None, user=None, password=None,
 
     params = {
         "host": host or os.environ.get("PGHOST", "localhost"),
-        "port": port or os.environ.get("PGPORT", "5432"),
+        "port": _safe_int(port or os.environ.get("PGPORT"), 5432),
         "user": user or os.environ.get("PGUSER", "postgres"),
         "password": password or os.environ.get("PGPASSWORD", ""),
         "dbname": dbname or os.environ.get("PGDATABASE", "postgres"),
@@ -62,22 +88,11 @@ def connect_mysql(host=None, port=None, user=None, password=None,
     _load_env_file(env_file)
 
     if dsn:
-        # 解析 mysql://user:pass@host:port/db 格式
-        from urllib.parse import urlparse
-        parsed = urlparse(dsn)
-        return pymysql.connect(
-            host=parsed.hostname or "localhost",
-            port=parsed.port or 3306,
-            user=parsed.username or "root",
-            password=parsed.password or "",
-            database=parsed.path.lstrip("/") if parsed.path else None,
-            charset=charset,
-            cursorclass=pymysql.cursors.DictCursor,
-        )
+        return _parse_mysql_dsn(dsn, charset)
 
     params = {
         "host": host or os.environ.get("MYSQL_HOST", "localhost"),
-        "port": int(port or os.environ.get("MYSQL_PORT", "3306")),
+        "port": _safe_int(port or os.environ.get("MYSQL_PORT"), 3306),
         "user": user or os.environ.get("MYSQL_USER", "root"),
         "password": password or os.environ.get("MYSQL_PWD", ""),
         "database": database or os.environ.get("MYSQL_DATABASE"),

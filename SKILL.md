@@ -19,12 +19,12 @@ pip install pymysql
 
 ## 脚本路径
 
-本技能的脚本位于 `~/.claude/skills/database-tools/` 目录下。
+本技能的脚本位于 `~/.claude/skills/database-tools-skills/` 目录下。
 
 **推荐使用统一入口 `db.py`**（覆盖所有功能）：
 
 ```bash
-SKILL_DIR="$HOME/.claude/skills/database-tools"
+SKILL_DIR="$HOME/.claude/skills/database-tools-skills"
 python "$SKILL_DIR/db.py" <command>
 ```
 

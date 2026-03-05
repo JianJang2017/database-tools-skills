@@ -263,7 +263,7 @@ db.py diff --source before.json --target after.json
 ## 项目结构
 
 ```
-database-tools/
+database-tools-skills/
 ├── db.py                       # 统一入口（推荐使用）
 ├── SKILL.md                    # Claude 技能文档
 ├── scripts/

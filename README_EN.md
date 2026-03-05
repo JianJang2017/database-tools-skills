@@ -263,7 +263,7 @@ db.py diff --source before.json --target after.json
 ## Project Structure
 
 ```
-database-tools/
+database-tools-skills/
 ├── db.py                       # Unified entry point (recommended)
 ├── SKILL.md                    # Claude skill documentation
 ├── scripts/

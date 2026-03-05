@@ -11,6 +11,12 @@ import os
 import sys
 from datetime import datetime
 
+# Windows 控制台中文输出兼容
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+
 try:
     import pymysql
     from pymysql.cursors import DictCursor
@@ -28,12 +34,15 @@ from mysql_inspector import get_connection
 # ============================================================
 
 def get_mysql_version(conn):
-    """返回 MySQL 主版本号，如 (8, 0) 或 (5, 7)"""
+    """返回 MySQL 主版本号，如 (8, 0) 或 (5, 7)。兼容 MariaDB 等变体。"""
     with conn.cursor() as cur:
         cur.execute("SELECT VERSION() AS ver")
         ver_str = cur.fetchone()['ver']
-        parts = ver_str.split('.')
-        return (int(parts[0]), int(parts[1]))
+        import re
+        m = re.match(r'(\d+)\.(\d+)', ver_str)
+        if m:
+            return (int(m.group(1)), int(m.group(2)))
+        return (5, 7)  # 无法解析时保守降级
 
 
 # ============================================================
@@ -418,7 +427,7 @@ def generate_report(conn, schema):
         lines.append("| 查询 | 调用次数 | 平均(s) | 最大(s) | 总时间(s) | 无索引 |")
         lines.append("|------|----------|---------|---------|-----------|--------|")
         for s in slow:
-            query = str(s['query'])[:80].replace('\n', ' ').replace('|', '\\|')
+            query = str(s['query'])[:80].replace('\r', '').replace('\n', ' ').replace('|', '\\|')
             lines.append(
                 f"| {query}... | {s['calls']} | {s['avg_time_sec']} | "
                 f"{s['max_time_sec']} | {s['total_time_sec']} | {s['no_index_used']} |"
@@ -581,7 +590,7 @@ def main():
         if args.command == 'report':
             report = generate_report(conn, args.schema)
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, 'w', encoding="utf-8") as f:
                     f.write(report)
                 print(f"报告已写入: {args.output}")
             else:
@@ -590,7 +599,7 @@ def main():
         elif args.command == 'optimize':
             ddl = generate_optimization_ddl(conn, args.schema)
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, 'w', encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"优化脚本已写入: {args.output}")
             else:
@@ -601,29 +610,29 @@ def main():
             if results is None:
                 print("performance_schema 未启用", file=sys.stderr)
                 sys.exit(1)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'missing-fk-indexes':
             results = analyze_missing_fk_indexes(conn, args.schema)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'fragmentation':
             results = analyze_fragmentation(conn, args.schema)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'slow-queries':
             results = analyze_slow_queries(conn, args.schema)
             if results is None:
                 print("performance_schema 未启用", file=sys.stderr)
                 sys.exit(1)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'buffer-pool':
             results = analyze_buffer_pool(conn)
             if results is None:
                 print("无法获取缓冲池信息", file=sys.stderr)
                 sys.exit(1)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
     finally:
         conn.close()

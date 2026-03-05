@@ -9,6 +9,12 @@ import json
 import os
 import sys
 
+# Windows 控制台中文输出兼容
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
@@ -26,12 +32,14 @@ def get_connection(args):
     # 尝试从 .env 文件加载
     env_file = getattr(args, 'env_file', None) or '.env'
     if os.path.exists(env_file):
-        with open(env_file) as f:
+        with open(env_file, encoding="utf-8") as f:
             for line in f:
-                line = line.strip()
+                line = line.strip().strip("\r")
                 if line and not line.startswith('#') and '=' in line:
                     key, val = line.split('=', 1)
-                    os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
+                    val = val.strip().strip("\r").strip('"').strip("'")
+                    if val:  # 跳过空值
+                        os.environ.setdefault(key.strip(), val)
 
     # 如果提供了完整连接字符串
     dsn = getattr(args, 'dsn', None) or os.environ.get('DATABASE_URL') or os.environ.get('PG_DSN')
@@ -447,7 +455,7 @@ def export_schema_info(conn, schema, tables=None, fmt='markdown'):
 
     if fmt == 'json':
         # 将 Decimal 等类型转换为字符串
-        return json.dumps(result, indent=2, default=str)
+        return json.dumps(result, indent=2, default=str, ensure_ascii=False)
 
     # Markdown 格式
     lines = []
@@ -567,7 +575,7 @@ def main():
         elif args.command == 'ddl':
             ddl = generate_ddl(conn, args.schema, args.table)
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, 'w', encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"DDL 已写入: {args.output}")
             else:

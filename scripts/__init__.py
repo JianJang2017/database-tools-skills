@@ -1,1 +1,1 @@
-# database-tools scripts
+# database-tools-skills scripts

@@ -24,7 +24,7 @@ def export_pg(conn, schema="public"):
     # 提取连接信息
     dsn_params = conn.get_dsn_parameters()
     snapshot.host = dsn_params.get("host", "")
-    snapshot.port = int(dsn_params.get("port", 0))
+    snapshot.port = int(dsn_params.get("port", 0) or 0)
     snapshot.database = dsn_params.get("dbname", "")
 
     # 类型映射（复用 pg_inspector 的逻辑）
@@ -192,7 +192,7 @@ def export_mysql(conn, schema):
         cur.execute("SELECT @@hostname AS host, @@port AS port")
         info = cur.fetchone()
         snapshot.host = info.get("host", "")
-        snapshot.port = int(info.get("port", 0))
+        snapshot.port = int(info.get("port", 0) or 0)
         snapshot.database = schema
 
         # 列出表
@@ -333,11 +333,11 @@ def export_mysql(conn, schema):
 
 def save_snapshot(snapshot, filepath):
     """保存快照到 JSON 文件"""
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(snapshot.to_json())
 
 
 def load_snapshot(filepath):
     """从 JSON 文件加载快照"""
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         return SchemaSnapshot.from_json(f.read())

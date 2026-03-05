@@ -14,8 +14,8 @@ DEFAULT_CONFIG = {"profiles": {}}
 
 
 def _ensure_permissions(path):
-    """确保配置文件权限为 600"""
-    if os.path.exists(path):
+    """确保配置文件权限为 600（仅 Unix 有效）"""
+    if os.path.exists(path) and os.name != "nt":
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
 
 
@@ -23,13 +23,13 @@ def load() -> dict:
     """加载配置文件"""
     if not os.path.exists(CONFIG_PATH):
         return DEFAULT_CONFIG.copy()
-    with open(CONFIG_PATH, "r") as f:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save(config: dict):
     """保存配置文件（自动设置 600 权限）"""
-    with open(CONFIG_PATH, "w") as f:
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
     _ensure_permissions(CONFIG_PATH)
 

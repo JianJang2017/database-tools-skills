@@ -10,6 +10,12 @@ import os
 import sys
 from datetime import datetime
 
+# Windows 控制台中文输出兼容
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
@@ -479,7 +485,7 @@ def generate_report(conn, schema):
         lines.append("| 查询 | 调用次数 | 平均(ms) | 最大(ms) | 总时间(ms) | 缓存率 |")
         lines.append("|------|----------|----------|----------|------------|--------|")
         for s in slow:
-            query = s['query'][:80].replace('\n', ' ').replace('|', '\\|')
+            query = s['query'][:80].replace('\r', '').replace('\n', ' ').replace('|', '\\|')
             lines.append(
                 f"| {query}... | {s['calls']} | {s['avg_time_ms']} "
                 f"| {s['max_time_ms']} | {s['total_time_ms']} | {s['hit_rate_pct']}% |"
@@ -649,7 +655,7 @@ def main():
         if args.command == 'report':
             report = generate_report(conn, args.schema)
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, 'w', encoding="utf-8") as f:
                     f.write(report)
                 print(f"报告已写入: {args.output}")
             else:
@@ -658,7 +664,7 @@ def main():
         elif args.command == 'optimize':
             ddl = generate_optimization_ddl(conn, args.schema, not args.no_concurrently)
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, 'w', encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"优化脚本已写入: {args.output}")
             else:
@@ -666,26 +672,26 @@ def main():
 
         elif args.command == 'unused-indexes':
             results = analyze_unused_indexes(conn, args.schema)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'missing-fk-indexes':
             results = analyze_missing_fk_indexes(conn, args.schema)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'bloat':
             results = analyze_table_bloat(conn, args.schema)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'locks':
             results = analyze_lock_waits(conn)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
         elif args.command == 'slow-queries':
             results = analyze_slow_queries(conn)
             if results is None:
                 print("pg_stat_statements 扩展未启用", file=sys.stderr)
                 sys.exit(1)
-            print(json.dumps(results, indent=2, default=str))
+            print(json.dumps(results, indent=2, default=str, ensure_ascii=False))
 
     finally:
         conn.close()

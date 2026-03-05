@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
-database-tools 统一入口
+database-tools-skills 统一入口
 薄路由层 — 所有业务逻辑由 scripts/ 和 lib/ 模块实现
 """
 
 import argparse
 import os
 import sys
+
+# Windows 控制台中文输出兼容
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
 
 # 确保 scripts/ 和 lib/ 可导入
 TOOL_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +82,7 @@ def cmd_pg(args):
         elif sub == "ddl":
             ddl = pg_inspector.generate_ddl(conn, args.schema, args.table)
             if args.output:
-                with open(args.output, "w") as f:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"DDL 已写入: {args.output}")
             else:
@@ -85,7 +91,7 @@ def cmd_pg(args):
         elif sub == "report":
             report = pg_index_advisor.generate_report(conn, args.schema)
             if args.output:
-                with open(args.output, "w") as f:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(report)
                 print(f"报告已写入: {args.output}")
             else:
@@ -95,7 +101,7 @@ def cmd_pg(args):
             concurrently = not getattr(args, "no_concurrently", False)
             ddl = pg_index_advisor.generate_optimization_ddl(conn, args.schema, concurrently)
             if args.output:
-                with open(args.output, "w") as f:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"优化脚本已写入: {args.output}")
             else:
@@ -153,7 +159,7 @@ def cmd_mysql(args):
             else:
                 ddl = mysql_inspector.generate_ddl(conn, args.schema, args.table)
             if args.output:
-                with open(args.output, "w") as f:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"DDL 已写入: {args.output}")
             else:
@@ -162,7 +168,7 @@ def cmd_mysql(args):
         elif sub == "report":
             report = mysql_index_advisor.generate_report(conn, args.schema)
             if args.output:
-                with open(args.output, "w") as f:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(report)
                 print(f"报告已写入: {args.output}")
             else:
@@ -171,7 +177,7 @@ def cmd_mysql(args):
         elif sub == "optimize":
             ddl = mysql_index_advisor.generate_optimization_ddl(conn, args.schema)
             if args.output:
-                with open(args.output, "w") as f:
+                with open(args.output, "w", encoding="utf-8") as f:
                     f.write(ddl)
                 print(f"优化脚本已写入: {args.output}")
             else:
@@ -345,7 +351,7 @@ def cmd_config(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="database-tools 统一入口 — PostgreSQL / MySQL 数据库工具集",
+        description="database-tools-skills 统一入口 — PostgreSQL / MySQL 数据库工具集",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
