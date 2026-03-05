@@ -1,0 +1,19 @@
+# 虚拟环境
+venv/
+env/
+.env
+
+# 依赖安装文件
+*.egg-info/
+dist/
+build/
+
+# 日志文件
+*.log
+
+# IDE 配置文件
+.idea/
+.vscode/
+*.swp
+*.swo
+__pycache__/
