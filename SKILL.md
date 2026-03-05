@@ -1,5 +1,5 @@
 ---
-name: database-tools
+name: database-tools-skills
 description: "PostgreSQL / MySQL 数据库工具集。连接 PostgreSQL 或 MySQL 数据库，读取和分析表结构，生成 DDL 初始化脚本，进行索引性能优化分析并输出优化建议脚本，支持跨数据库结构对比与迁移 DDL 生成。当用户请求"查看数据库结构"、"导出 DDL"、"生成建表脚本"、"数据库初始化"、"索引优化"、"数据库性能分析"、"PostgreSQL 分析"、"MySQL 分析"、"数据库对比"、"数据库迁移"、"数据库 diff"时触发此技能。"
 ---
 
