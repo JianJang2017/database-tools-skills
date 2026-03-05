@@ -1,5 +1,7 @@
 # Database Tools
 
+[English](./README_EN.md)
+
 PostgreSQL + MySQL 数据库工具集。一行命令搞定：查结构、导 DDL、性能分析、索引优化、跨库对比。
 
 ## 安装

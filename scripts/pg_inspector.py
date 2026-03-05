@@ -172,7 +172,7 @@ SELECT
 FROM pg_proc p
 JOIN pg_namespace n ON p.pronamespace = n.oid
 WHERE n.nspname = %(schema)s
-    AND p.proname NOT LIKE 'pg_%'
+    AND p.proname NOT LIKE 'pg_%%'
 ORDER BY p.proname;
 """
 

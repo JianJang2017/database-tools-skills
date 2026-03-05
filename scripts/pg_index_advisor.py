@@ -156,7 +156,7 @@ SELECT
     round((100.0 * shared_blks_hit / NULLIF(shared_blks_hit + shared_blks_read, 0))::numeric, 2) AS hit_rate_pct
 FROM pg_stat_statements
 WHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
-    AND query NOT LIKE '%pg_stat%'
+    AND query NOT LIKE '%%pg_stat%%'
     AND calls > 5
 ORDER BY mean_exec_time DESC
 LIMIT 20;
