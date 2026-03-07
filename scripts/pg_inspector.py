@@ -15,13 +15,23 @@ if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stderr.reconfigure(encoding="utf-8")
 
-try:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-except ImportError:
-    print("错误: 需要安装 psycopg2-binary")
-    print("请运行: pip install psycopg2-binary")
-    sys.exit(1)
+# 延迟导入 psycopg2，避免模块级 sys.exit 影响 db.py 导入
+psycopg2 = None
+RealDictCursor = None
+
+def _ensure_psycopg2():
+    """确保 psycopg2 已安装，未安装时抛出 ImportError"""
+    global psycopg2, RealDictCursor
+    if psycopg2 is None:
+        try:
+            import psycopg2 as pg2
+            from psycopg2.extras import RealDictCursor as RDC
+            psycopg2 = pg2
+            RealDictCursor = RDC
+        except ImportError:
+            raise ImportError(
+                "需要安装 psycopg2-binary: pip install psycopg2-binary"
+            )
 
 
 def get_connection(args):
@@ -29,6 +39,8 @@ def get_connection(args):
     获取数据库连接。
     优先级: 命令行参数 > 环境变量 > .env 文件
     """
+    _ensure_psycopg2()
+
     # 尝试从 .env 文件加载
     env_file = getattr(args, 'env_file', None) or '.env'
     if os.path.exists(env_file):
@@ -505,6 +517,7 @@ def export_schema_info(conn, schema, tables=None, fmt='markdown'):
 # ============================================================
 
 def main():
+    _ensure_psycopg2()
     parser = argparse.ArgumentParser(description='PostgreSQL 数据库元数据检查器')
 
     # 连接参数

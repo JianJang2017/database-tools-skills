@@ -7,6 +7,7 @@ Profile 配置管理
 import json
 import os
 import stat
+from typing import Optional
 
 CONFIG_PATH = os.path.expanduser("~/.dbtools.json")
 
@@ -15,8 +16,15 @@ DEFAULT_CONFIG = {"profiles": {}}
 
 def _ensure_permissions(path):
     """确保配置文件权限为 600（仅 Unix 有效）"""
-    if os.path.exists(path) and os.name != "nt":
-        os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+    if os.path.exists(path):
+        if os.name != "nt":
+            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+        else:
+            import sys
+            print(
+                f"警告: Windows 系统无法设置文件权限，配置文件 {path} 可能被其他用户读取。",
+                file=sys.stderr
+            )
 
 
 def load() -> dict:
@@ -34,7 +42,7 @@ def save(config: dict):
     _ensure_permissions(CONFIG_PATH)
 
 
-def get_profile(name: str) -> dict | None:
+def get_profile(name: str) -> Optional[dict]:
     """获取指定 profile"""
     config = load()
     return config.get("profiles", {}).get(name)

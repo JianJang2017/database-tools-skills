@@ -16,13 +16,23 @@ if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stderr.reconfigure(encoding="utf-8")
 
-try:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
-except ImportError:
-    print("错误: 需要安装 psycopg2-binary")
-    print("请运行: pip install psycopg2-binary")
-    sys.exit(1)
+# 延迟导入 psycopg2，避免模块级 sys.exit 影响 db.py 导入
+psycopg2 = None
+RealDictCursor = None
+
+def _ensure_psycopg2():
+    """确保 psycopg2 已安装，未安装时抛出 ImportError"""
+    global psycopg2, RealDictCursor
+    if psycopg2 is None:
+        try:
+            import psycopg2 as pg2
+            from psycopg2.extras import RealDictCursor as RDC
+            psycopg2 = pg2
+            RealDictCursor = RDC
+        except ImportError:
+            raise ImportError(
+                "需要安装 psycopg2-binary: pip install psycopg2-binary"
+            )
 
 # 复用 pg_inspector 的连接逻辑
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -356,6 +366,7 @@ def _section(title, level=2):
 
 def generate_report(conn, schema):
     """生成完整的性能分析报告（Markdown 格式）"""
+    _ensure_psycopg2()
     lines = []
     lines.append(f"# PostgreSQL 索引与性能分析报告")
     lines.append(f"**Schema**: `{schema}` | **时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -518,6 +529,7 @@ def generate_report(conn, schema):
 
 def generate_optimization_ddl(conn, schema, concurrently=True):
     """基于分析结果生成优化 DDL 脚本"""
+    _ensure_psycopg2()
     lines = []
     lines.append(f"-- ============================================================")
     lines.append(f"-- PostgreSQL 索引优化脚本")
@@ -599,6 +611,7 @@ def generate_optimization_ddl(conn, schema, concurrently=True):
 # ============================================================
 
 def main():
+    _ensure_psycopg2()
     parser = argparse.ArgumentParser(description='PostgreSQL 索引与性能分析器')
 
     # 连接参数
