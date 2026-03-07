@@ -6,6 +6,8 @@ PostgreSQL + MySQL database toolkit. One command to handle it all: inspect schem
 
 ## Installation
 
+**Python Version**: >= 3.9
+
 ```bash
 # PostgreSQL support
 pip install psycopg2-binary
@@ -113,7 +115,7 @@ db.py pg inspect -s public --profile dev --password secret
 db.py mysql tables -s app --profile staging --password secret
 ```
 
-> Config file is stored at `~/.dbtools.json` with permissions automatically set to 600.
+> Config file is stored at `~/.dbtools.json` with permissions automatically set to 600 on Unix/Linux/macOS (a warning is displayed on Windows).
 
 ---
 
@@ -293,7 +295,7 @@ Only `SELECT` privileges are needed. Performance analysis requires access to `pg
 
 **Q: Are passwords stored securely?**
 
-The profile config file `~/.dbtools.json` does not store passwords, and file permissions are automatically set to 600. Passwords are passed via the `--password` argument or environment variables.
+The profile config file `~/.dbtools.json` does not store passwords. File permissions are automatically set to 600 (owner read/write only) on Unix/Linux/macOS; a warning is displayed on Windows. Passwords are passed via the `--password` argument or environment variables.
 
 **Q: Is MySQL 5.7 supported?**
 

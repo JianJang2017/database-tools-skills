@@ -6,6 +6,8 @@ PostgreSQL + MySQL 数据库工具集。一行命令搞定：查结构、导 DDL
 
 ## 安装
 
+**Python 版本**: >= 3.9
+
 ```bash
 # PostgreSQL 支持
 pip install psycopg2-binary
@@ -113,7 +115,7 @@ db.py pg inspect -s public --profile dev --password secret
 db.py mysql tables -s app --profile staging --password secret
 ```
 
-> 配置文件位于 `~/.dbtools.json`，自动设置 600 权限。
+> 配置文件位于 `~/.dbtools.json`，Unix/Linux/macOS 下自动设置 600 权限（Windows 下会输出警告提示）。
 
 ---
 
@@ -293,7 +295,7 @@ database-tools-skills/
 
 **Q: 密码安全吗？**
 
-Profile 配置文件 `~/.dbtools.json` 不存储密码，文件权限自动设为 600。密码通过 `--password` 参数或环境变量传入。
+Profile 配置文件 `~/.dbtools.json` 不存储密码。Unix/Linux/macOS 下文件权限自动设为 600（仅所有者可读写），Windows 下会输出警告提示。密码通过 `--password` 参数或环境变量传入。
 
 **Q: MySQL 5.7 支持吗？**
 
